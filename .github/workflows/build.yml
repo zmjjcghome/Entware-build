@@ -33,7 +33,7 @@ env:
   UPLOAD_COWTRANSFER: true
   UPLOAD_WETRANSFER: true
   UPLOAD_ARTIFACT: false
-  SSH_ACTIONS: true
+  SSH_ACTIONS: false
   FILETARNAME: entware.tar.gz
   TZ: Asia/Shanghai
 
