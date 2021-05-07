@@ -33,8 +33,8 @@ env:
   UPLOAD_COWTRANSFER: true
   UPLOAD_WETRANSFER: true
   UPLOAD_ARTIFACT: false
-  SSH_ACTIONS: true
-  SPACE_CLEAN: false
+  SSH_ACTIONS: false
+  SPACE_CLEAN: true
   FILETARNAME: entware.tar.gz
   TZ: Asia/Shanghai
 
@@ -90,6 +90,7 @@ jobs:
           cp -rf lede/package/lean/baidupcs-web Entware/package/network/services/baidupcs-web
           #cp -rf Makefile Entware/package/network/services/baidupcs-web/Makefile
           cd Entware
+          echo 'CONFIG_PACKAGE_baidupcs-web=m' >> .config
           make package/symlinks
           #./scripts/feeds update -a
           #./scripts/feeds install -a
