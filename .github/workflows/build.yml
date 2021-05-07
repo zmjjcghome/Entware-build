@@ -119,7 +119,40 @@ jobs:
           make toolchain/install -j2
           make target/compile -j2
           #make -j$(nproc) package/baidupcs-web/compile V=s
-          make -j1 package/baidupcs-web/compile V=s
+          make -j$(nproc) package/baidupcs-web/compile V=s
+          echo "======================="
+          echo "Space usage:"
+          echo "======================="
+          df -h
+          echo "======================="
+          du -h ./ --max-depth=1
+          #du -h /mnt/openwrt/ --max-depth=1 || true
+      
+      - name: Generate configuration file armv7-3.2.config
+        run: |
+          ls -l
+          cd Entware
+          cp -v configs/armv7-3.2.config .config
+          echo 'CONFIG_PACKAGE_baidupcs-web=m' >> .config
+          echo 'CONFIG_BAIDUPCS_WEB_COMPRESS_UPX=y' >> .config
+          #
+          # 在 cat >> .config <<EOF 到 EOF 之间粘贴你的编译配置, 需注意缩进关系
+          # 例如:
+          
+          #
+          # ===============================================================
+          #
+
+      - name: Compile firmware
+        run: |
+          ls -l
+          cd Entware
+          echo "make -j$(nproc) package/baidupcs-web/compile V=s"
+          make tools/install -j2
+          make toolchain/install -j2
+          make target/compile -j2
+          #make -j$(nproc) package/baidupcs-web/compile V=s
+          make -j$(nproc) package/baidupcs-web/compile V=s
           echo "======================="
           echo "Space usage:"
           echo "======================="
