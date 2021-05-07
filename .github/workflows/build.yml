@@ -33,7 +33,7 @@ env:
   UPLOAD_COWTRANSFER: true
   UPLOAD_WETRANSFER: true
   UPLOAD_ARTIFACT: false
-  SSH_ACTIONS: true
+  SSH_ACTIONS: false
   SPACE_CLEAN: true
   FILETARNAME: entware.tar.gz
   TZ: Asia/Shanghai
@@ -88,7 +88,8 @@ jobs:
       - name: Update feeds
         run: |
           cp -rf lede/package/lean/baidupcs-web Entware/package/network/services/baidupcs-web
-          cp -rf Makefile Entware/package/network/services/baidupcs-web/Makefile
+          #cp -rf Makefile Entware/package/network/services/baidupcs-web/Makefile
+          sed -i 's#/usr/bin#/opt/bin#g' Entware/package/network/services/baidupcs-web/Makefile
           cd Entware
           make package/symlinks
           #./scripts/feeds update -a
@@ -100,6 +101,7 @@ jobs:
           cd Entware
           cp -v configs/mipsel-3.4.config .config
           echo 'CONFIG_PACKAGE_baidupcs-web=m' >> .config
+          echo 'CONFIG_BAIDUPCS_WEB_COMPRESS_UPX=y' >> .config
           #
           # 在 cat >> .config <<EOF 到 EOF 之间粘贴你的编译配置, 需注意缩进关系
           # 例如:
