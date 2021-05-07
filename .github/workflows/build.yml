@@ -90,7 +90,6 @@ jobs:
           cp -rf lede/package/lean/baidupcs-web Entware/package/network/services/baidupcs-web
           #cp -rf Makefile Entware/package/network/services/baidupcs-web/Makefile
           cd Entware
-          echo 'CONFIG_PACKAGE_baidupcs-web=m' >> .config
           make package/symlinks
           #./scripts/feeds update -a
           #./scripts/feeds install -a
@@ -100,6 +99,7 @@ jobs:
           ls -l
           cd Entware
           cp -v configs/mipsel-3.4.config .config
+          echo 'CONFIG_PACKAGE_baidupcs-web=m' >> .config
           #
           # 在 cat >> .config <<EOF 到 EOF 之间粘贴你的编译配置, 需注意缩进关系
           # 例如:
