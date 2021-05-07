@@ -90,6 +90,7 @@ jobs:
           cp -rf lede/package/lean/baidupcs-web Entware/package/network/services/baidupcs-web
           #cp -rf Makefile Entware/package/network/services/baidupcs-web/Makefile
           sed -i 's#/usr/bin#/opt/bin#g' Entware/package/network/services/baidupcs-web/Makefile
+          sed -i 's#$(STAGING_DIR_HOST)/bin/upx#/usr/bin/upx#g' Entware/package/network/services/baidupcs-web/Makefile
           cd Entware
           make package/symlinks
           #./scripts/feeds update -a
