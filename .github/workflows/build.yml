@@ -33,7 +33,7 @@ env:
   UPLOAD_COWTRANSFER: true
   UPLOAD_WETRANSFER: true
   UPLOAD_ARTIFACT: false
-  SSH_ACTIONS: false
+  SSH_ACTIONS: true
   FILETARNAME: entware.tar.gz
   TZ: Asia/Shanghai
 
@@ -113,6 +113,9 @@ jobs:
         run: |
           ls -l
           cd Entware
+          make tools/install
+          make toolchain/install
+          make target/compile
           echo "make -j$(nproc) package/baidupcs-web/compile V=s"
           #make -j$(nproc) package/baidupcs-web/compile V=s
           make -j1 package/baidupcs-web/compile V=s
