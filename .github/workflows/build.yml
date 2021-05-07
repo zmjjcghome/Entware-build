@@ -34,6 +34,7 @@ env:
   UPLOAD_WETRANSFER: true
   UPLOAD_ARTIFACT: false
   SSH_ACTIONS: true
+  SPACE_CLEAN: false
   FILETARNAME: entware.tar.gz
   TZ: Asia/Shanghai
 
@@ -57,6 +58,7 @@ jobs:
       - name: Space cleanup
         env:
           DEBIAN_FRONTEND: noninteractive
+        if: env.SPACE_CLEAN == 'true'
         run: |
           docker rmi `docker images -q`
           sudo rm -rf /usr/share/dotnet /etc/mysql /etc/php /etc/apt/sources.list.d
@@ -86,7 +88,7 @@ jobs:
       - name: Update feeds
         run: |
           cp -rf lede/package/lean/baidupcs-web Entware/package/network/services/baidupcs-web
-          cp -rf Makefile Entware/package/network/services/baidupcs-web/Makefile
+          #cp -rf Makefile Entware/package/network/services/baidupcs-web/Makefile
           cd Entware
           make package/symlinks
           #./scripts/feeds update -a
@@ -113,9 +115,9 @@ jobs:
         run: |
           ls -l
           cd Entware
-          make tools/install
-          make toolchain/install
-          make target/compile
+          make tools/install -j2
+          make toolchain/install -j2
+          make target/compile -j2
           echo "make -j$(nproc) package/baidupcs-web/compile V=s"
           #make -j$(nproc) package/baidupcs-web/compile V=s
           make -j1 package/baidupcs-web/compile V=s
