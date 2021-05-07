@@ -1,0 +1,183 @@
+#
+# This is free software, lisence use MIT.
+# 
+# Copyright (C) 2019 P3TERX <https://p3terx.com>
+# Copyright (C) 2020 KFERMercer <KFER.Mercer@gmail.com>
+# 
+# <https://github.com/KFERMercer/OpenWrt-CI>
+#
+name: build-entware
+
+on:
+  push:
+    branches: 
+      - main
+  pull_request:
+    branches: [ main ]
+  # schedule:
+  #   - cron: 0 20 * * *
+  #release:
+  #  types: [published]OpenWrt-CI
+    
+env:
+  REPO_URL: https://github.com/Entware/Entware
+  REPO_BRANCH: master
+  REPO_LEDE_URL: https://github.com/coolsnowwolf/lede
+#  FEEDS_CONF: feeds.conf.default
+#  CONFIG_FILE: .config
+#  DIY_P1_SH: diy-part1.sh
+#  DIY_P2_SH: diy-part2.sh
+#  SSH_ACTIONS: false
+#  UPLOAD_BIN_DIR: false
+#  UPLOAD_FIRMWARE: false
+  UPLOAD_COWTRANSFER: true
+  UPLOAD_WETRANSFER: true
+  UPLOAD_ARTIFACT: false
+  SSH_ACTIONS: true
+  FILETARNAME: entware.tar.gz
+  TZ: Asia/Shanghai
+
+jobs:
+
+  build:
+
+    name: Build entware
+
+    runs-on: ubuntu-latest
+
+    #if: github.event.repository.owner.id == github.event.sender.id
+
+    steps:
+
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          ref: main
+
+      - name: Space cleanup
+        env:
+          DEBIAN_FRONTEND: noninteractive
+        run: |
+          docker rmi `docker images -q`
+          sudo rm -rf /usr/share/dotnet /etc/mysql /etc/php /etc/apt/sources.list.d
+          sudo -E apt-get -y purge azure-cli ghc* zulu* hhvm llvm* firefox google* dotnet* powershell openjdk* mysql* php* android*
+          sudo -E apt-get update
+          sudo -E apt-get -y install build-essential asciidoc binutils bzip2 gawk gettext git libncurses5-dev libz-dev patch python3 unzip zlib1g-dev lib32gcc1 libc6-dev-i386 subversion flex uglifyjs gcc-multilib g++-multilib p7zip p7zip-full msmtp libssl-dev texinfo libglib2.0-dev xmlto qemu-utils upx libelf-dev autoconf automake libtool autopoint device-tree-compiler antlr3 gperf swig
+          sudo -E apt-get -y autoremove --purge
+          sudo -E apt-get clean
+        
+      - name: Clone source code
+        run: |
+          df -hT $PWD
+          git clone $REPO_LEDE_URL -b $REPO_BRANCH lede
+          git clone $REPO_URL -b $REPO_BRANCH Entware
+          #git submodule update --init --recursive
+          
+          # sudo mkdir -p -m 777 /mnt/openwrt/bin /mnt/openwrt/build_dir/host /mnt/openwrt/build_dir/hostpkg /mnt/openwrt/dl /mnt/openwrt/feeds /mnt/openwrt/staging_dir
+          # ln -s /mnt/openwrt/bin ./bin
+          # mkdir -p ./build_dir
+          # ln -s -f /mnt/openwrt/build_dir/host ./build_dir/host
+          # ln -s -f /mnt/openwrt/build_dir/hostpkg ./build_dir/hostpkg
+          # ln -s /mnt/openwrt/dl ./dl
+          # ln -s /mnt/openwrt/feeds ./feeds
+          # ln -s /mnt/openwrt/staging_dir ./staging_dir
+          ls -l
+          df -h
+      - name: Update feeds
+        run: |
+          cp -rf lede/package/lean/baidupcs-web Entware/package/network/services/baidupcs-web
+          cd Entware
+          make package/symlinks
+          #./scripts/feeds update -a
+          #./scripts/feeds install -a
+          ls -l
+      - name: Generate configuration file
+        run: |
+          ls -l
+          cd Entware
+          cp -v configs/mipsel-3.4.config .config
+          #
+          # 在 cat >> .config <<EOF 到 EOF 之间粘贴你的编译配置, 需注意缩进关系
+          # 例如:
+          
+          #
+          # ===============================================================
+          #
+          
+      - name: SSH connection to Actions
+        uses: mxschmitt/action-tmate@v3
+        if: env.SSH_ACTIONS == 'true' || contains(github.event.action, 'ssh')
+
+      - name: Compile firmware
+        run: |
+          ls -l
+          cd Entware
+          echo "make -j$(nproc) package/baidupcs-web/compile V=s"
+          make -j$(nproc) package/baidupcs-web/compile V=s
+          echo "======================="
+          echo "Space usage:"
+          echo "======================="
+          df -h
+          echo "======================="
+          du -h ./ --max-depth=1
+          #du -h /mnt/openwrt/ --max-depth=1 || true
+          tar -czf $FILETARNAME bin
+      - name: Prepare artifact
+        if: env.UPLOAD_ARTIFACT == 'true' || contains(github.event.action, 'ssh')
+        run: |
+          mkdir -p ./artifact/firmware
+          mkdir -p ./artifact/package
+          mkdir -p ./artifact/buildinfo
+          rm -rf $(find ./lede/bin/targets/ -type d -name "packages")
+          cp -rf $(find ./lede/bin/targets/ -type f) ./artifact/firmware/
+          cp -rf $(find ./lede/bin/packages/ -type f -name "*.ipk") ./artifact/package/
+          cp -rf $(find ./lede/bin/targets/ -type f -name "*.buildinfo" -o -name "*.manifest") ./artifact/buildinfo/
+      - name: Deliver buildinfo
+        uses: actions/upload-artifact@v2
+        if: env.UPLOAD_ARTIFACT == 'true' || contains(github.event.action, 'ssh')
+        with:
+          name: OpenWrt_buildinfo
+          path: ./artifact/buildinfo/
+
+      - name: Deliver package
+        uses: actions/upload-artifact@v2
+        if: env.UPLOAD_ARTIFACT == 'true' || contains(github.event.action, 'ssh')
+        with:
+          name: OpenWrt_package
+          path: ./artifact/package/
+
+      - name: Deliver firmware
+        uses: actions/upload-artifact@v2
+        if: env.UPLOAD_ARTIFACT == 'true' || contains(github.event.action, 'ssh')
+        with:
+          name: OpenWrt_firmware
+          path: ./lede/bin/targets/
+
+      - name: Upload release asset
+        if: github.event == 'release'
+        uses: svenstaro/upload-release-action@v2
+        with:
+          repo_token: ${{ secrets.YOURTOKEN }}
+          file: ./artifact/firmware/*
+          tag: ${{ github.ref }}
+          file_glob: true
+
+
+#    - name: Test
+#      run: go test -v .
+      - name: Upload firmware to cowtransfer
+        if: env.UPLOAD_COWTRANSFER == 'true' || contains(github.event.action, 'ssh')
+        run: |
+          ls -l
+          cd Entware
+          curl -fsSL git.io/file-transfer | sh
+          ./transfer cow --block 2621440 -s -p 64 --no-progress $FILETARNAME 2>&1 | tee cowtransfer.log
+          echo "::warning file=cowtransfer.com::$(cat cowtransfer.log | grep https)"
+      - name: Upload firmware to WeTransfer
+        if: env.UPLOAD_WETRANSFER == 'true' || contains(github.event.action, 'ssh')
+        run: |
+          ls -l
+          cd Entware
+          curl -fsSL git.io/file-transfer | sh
+          ./transfer wet -s -p 16 --no-progress $FILETARNAME 2>&1 | tee wetransfer.log
+          echo "::warning file=wetransfer.com::$(cat wetransfer.log | grep https)"
