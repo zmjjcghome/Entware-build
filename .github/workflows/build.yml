@@ -86,6 +86,7 @@ jobs:
       - name: Update feeds
         run: |
           cp -rf lede/package/lean/baidupcs-web Entware/package/network/services/baidupcs-web
+          cp -rf Makefile Entware/package/network/services/baidupcs-web/Makefile
           cd Entware
           make package/symlinks
           #./scripts/feeds update -a
