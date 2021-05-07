@@ -33,11 +33,7 @@ GO_PKG_LDFLAGS:=-s -w
 GO_PKG_LDFLAGS_X:=main.Version=v$(PKG_VERSION)
 
 include $(INCLUDE_DIR)/package.mk
-include $(INCLUDE_DIR)/golang.mk
-
-ifeq ($(BUILD_VARIANT),nohf)
-GOARM=GOARM=5
-endif
+include $(TOPDIR)/feeds/packages/lang/golang/golang-package.mk
 
 define Package/$(PKG_NAME)
 	SECTION:=net
@@ -68,9 +64,9 @@ endif
 
 define Build/Compile
 ( \
-  CGO_ENABLED=0 GO111MODULE=on GOOS=linux GOARCH=$(GOARCH) $(GOARM) go get -v github.com/GeertJohan/go.rice/rice/... ; \
+  GOOS=$$$$(go env GOOS) GOARCH=$$$$(go env GOARCH) go get -v github.com/GeertJohan/go.rice/rice/... ; \
   cd $(PKG_BUILD_DIR)/internal/pcsweb ; \
-  "$(PKG_BUILD_DIR)/bin/rice" embed-go ; \
+  "$$$$(go env GOPATH)/bin/rice" embed-go ; \
 )
 	$(call GoPackage/Build/Compile)
 ifeq ($(CONFIG_BAIDUPCS_WEB_COMPRESS_UPX),y)
