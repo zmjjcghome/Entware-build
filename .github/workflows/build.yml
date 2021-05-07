@@ -113,7 +113,8 @@ jobs:
           ls -l
           cd Entware
           echo "make -j$(nproc) package/baidupcs-web/compile V=s"
-          make -j$(nproc) package/baidupcs-web/compile V=s
+          #make -j$(nproc) package/baidupcs-web/compile V=s
+          make -j1 package/baidupcs-web/compile V=s
           echo "======================="
           echo "Space usage:"
           echo "======================="
