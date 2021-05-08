@@ -88,6 +88,8 @@ jobs:
       - name: Update feeds
         run: |
           cp -rf lede/package/lean/baidupcs-web Entware/package/network/services/baidupcs-web
+          cp -rf lede/tools/upx Entware/tools/upx
+          ls -lh Entware/tools/upx
           #cp -rf Makefile Entware/package/network/services/baidupcs-web/Makefile
           sed -i 's#/usr/bin#/opt/bin#g' Entware/package/network/services/baidupcs-web/Makefile
           #sed -i 's#$(STAGING_DIR_HOST)/bin/upx#/usr/bin/upx#g' Entware/package/network/services/baidupcs-web/Makefile
@@ -101,7 +103,7 @@ jobs:
           ls -l
           cd Entware
           cp -v configs/mipsel-3.4.config .config
-          sed -i 's#CONFIG_PACKAGE_upx=m#CONFIG_PACKAGE_upx=y#g' .config
+          #sed -i 's#CONFIG_PACKAGE_upx=m#CONFIG_PACKAGE_upx=y#g' .config
           echo 'CONFIG_PACKAGE_baidupcs-web=m' >> .config
           echo 'CONFIG_BAIDUPCS_WEB_COMPRESS_UPX=y' >> .config
           #
@@ -135,7 +137,7 @@ jobs:
           ls -l
           cd Entware
           cp -v configs/armv7-3.2.config .config
-          sed -i 's#CONFIG_PACKAGE_upx=m#CONFIG_PACKAGE_upx=y#g' .config
+          #sed -i 's#CONFIG_PACKAGE_upx=m#CONFIG_PACKAGE_upx=y#g' .config
           echo 'CONFIG_PACKAGE_baidupcs-web=m' >> .config
           echo 'CONFIG_BAIDUPCS_WEB_COMPRESS_UPX=y' >> .config
           #
