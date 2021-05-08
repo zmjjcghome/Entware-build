@@ -92,10 +92,10 @@ jobs:
           ls -lh Entware/tools/upx
           cp -rf lede/tools/ucl Entware/tools/ucl
           ls -lh Entware/tools/ucl
-          Entware/tools/Makefile | grep upx
+          cat Entware/tools/Makefile | grep upx
           sed -i 's#tools-y += go-bootstrap go-src#tools-y += ucl upx go-bootstrap go-src#g' Entware/tools/Makefile
           sed -i 's#$(curdir)/autoconf/compile := $(curdir)/m4/compile#$(curdir)/upx/compile := $(curdir)/ucl/compile\n$(curdir)/autoconf/compile := $(curdir)/m4/compile#g' Entware/tools/Makefile
-          Entware/tools/Makefile | grep upx
+          cat Entware/tools/Makefile | grep upx
           #cp -rf Makefile Entware/package/network/services/baidupcs-web/Makefile
           sed -i 's#/usr/bin#/opt/bin#g' Entware/package/network/services/baidupcs-web/Makefile
           #sed -i 's#$(STAGING_DIR_HOST)/bin/upx#/usr/bin/upx#g' Entware/package/network/services/baidupcs-web/Makefile
