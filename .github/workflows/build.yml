@@ -61,12 +61,16 @@ jobs:
         if: env.SPACE_CLEAN == 'true'
         run: |
           docker rmi `docker images -q`
-          sudo rm -rf /usr/share/dotnet /etc/mysql /etc/php /etc/apt/sources.list.d
           sudo -E apt-get -y purge azure-cli ghc* zulu* hhvm llvm* firefox google* dotnet* powershell openjdk* mysql* php* android*
+          sudo rm -rf /usr/share/dotnet /etc/mysql /etc/php /etc/apt/sources.list.d
           sudo -E apt-get update
           sudo -E apt-get -y install build-essential asciidoc binutils bzip2 gawk gettext git libncurses5-dev libz-dev patch python3 unzip zlib1g-dev lib32gcc1 libc6-dev-i386 subversion flex uglifyjs gcc-multilib g++-multilib p7zip p7zip-full msmtp libssl-dev texinfo libglib2.0-dev xmlto qemu-utils upx libelf-dev autoconf automake libtool autopoint device-tree-compiler antlr3 gperf swig
           sudo -E apt-get -y autoremove --purge
           sudo -E apt-get clean
+          sudo rm -rf /usr/share/dotnet
+          sudo rm -rf /opt/ghc
+          sudo rm -rf "/usr/local/share/boost"
+          sudo rm -rf "$AGENT_TOOLSDIRECTORY"
         
       - name: Clone source code
         run: |
@@ -130,6 +134,7 @@ jobs:
           make target/compile -j2
           #make -j$(nproc) package/baidupcs-web/compile V=s
           make -j$(nproc) package/baidupcs-web/compile V=s
+          make -j$(nproc) package/php7-pecl-sodium/compile V=s
           echo "======================="
           echo "Space usage:"
           echo "======================="
@@ -164,6 +169,45 @@ jobs:
           make target/compile -j2
           #make -j$(nproc) package/baidupcs-web/compile V=s
           make -j$(nproc) package/baidupcs-web/compile V=s
+          make -j$(nproc) package/php7-pecl-sodium/compile V=s
+          echo "======================="
+          echo "Space usage:"
+          echo "======================="
+          df -h
+          echo "======================="
+          du -h ./ --max-depth=1
+          #du -h /mnt/openwrt/ --max-depth=1 || true
+          
+          
+      
+      - name: Generate configuration file armv5-3.2.config
+        run: |
+          ls -l
+          cd Entware
+          cp -v configs/armv5-3.2.config .config
+          #sed -i 's#CONFIG_PACKAGE_upx=m#CONFIG_PACKAGE_upx=y#g' .config
+          echo 'CONFIG_PACKAGE_baidupcs-web=m' >> .config
+          echo 'CONFIG_BAIDUPCS_WEB_COMPRESS_UPX=y' >> .config
+          #
+          # 在 cat >> .config <<EOF 到 EOF 之间粘贴你的编译配置, 需注意缩进关系
+          # 例如:
+          
+          #
+          # ===============================================================
+          #
+
+      - name: Compile firmware
+        run: |
+          ls -l
+          cd Entware
+          echo "make -j$(nproc) package/baidupcs-web/compile V=s"
+          make tools/install -j2
+          make toolchain/install -j2
+          make target/compile -j2
+          #make -j$(nproc) package/baidupcs-web/compile V=s
+          make -j$(nproc) package/baidupcs-web/compile V=s
+          make -j$(nproc) package/php7-pecl-sodium/compile V=s
+          
           echo "======================="
           echo "Space usage:"
           echo "======================="
@@ -172,6 +216,7 @@ jobs:
           du -h ./ --max-depth=1
           #du -h /mnt/openwrt/ --max-depth=1 || true
           tar -czf $FILETARNAME bin
+        
       - name: Prepare artifact
         if: env.UPLOAD_ARTIFACT == 'true' || contains(github.event.action, 'ssh')
         run: |
